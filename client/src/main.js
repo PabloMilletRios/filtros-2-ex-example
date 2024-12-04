@@ -1,14 +1,15 @@
 import "./style.css";
 import { crearNoticias,crearFiltro  } from "./helper/domHelper.js";
 import { api_sources,url,options } from "./api.js";
+import { parseClases } from "./helper/promiseHelper.js";
 
 const container = document.createElement("div");
 const container_noticias = document.createElement("div");
 container_noticias.classList.add("container-card");
 
 
-const fetchSetNoticias = async (url) => {
-    const response = await fetch(url);
+const fetchSetNoticias = async (url_noti) => {
+    const response = await fetch(url_noti);
     const json = await response.json();
     
     const span = document.createElement("span");
@@ -19,10 +20,16 @@ const fetchSetNoticias = async (url) => {
     div_filtros.appendChild(span);
 
     const noticia_filtro = crearFiltro(json);
+
     noticia_filtro.addEventListener("change", (event) =>{
-        let fetchUrl = event.target.value == "all" ? url : `${url}?source=${event.target.value}`;
-        crearNoticias(fetchUrl,options);
+        let url_noti = 
+        event.target.value === "all" 
+        ? url 
+        : `${url}?source=${event.target.value}`;
+        getNoticias(url_noti,options);
     });
+
+
     div_filtros.appendChild(noticia_filtro);
     container.appendChild(div_filtros);
     document.body.appendChild(container);
@@ -31,7 +38,9 @@ const fetchSetNoticias = async (url) => {
 const getNoticias = async(url,options) =>{
     const response = await fetch(url,options);
     const noticias = await response.json();
-    container_noticias.append(...crearNoticias(noticias));
+    const newClasses = await parseClases(noticias);
+    container_noticias.innerHTML = "";
+    container_noticias.append(...crearNoticias(newClasses));
     container.appendChild(container_noticias);
 }
 
